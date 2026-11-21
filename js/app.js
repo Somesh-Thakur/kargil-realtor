@@ -231,11 +231,16 @@
   const thumb = $("#reel-thumb");
   const syncTrack = () => {
     const max = reelrow.scrollWidth - reelrow.clientWidth;
-    const frac = reelrow.clientWidth / reelrow.scrollWidth;
-    thumb.style.width = `${Math.max(12, frac * 100)}%`;
-    thumb.style.left = `${max > 0 ? (reelrow.scrollLeft / max) * (100 - Math.max(12, frac * 100)) : 0}%`;
-    prev.disabled = reelrow.scrollLeft <= 2;
-    next.disabled = reelrow.scrollLeft >= max - 2;
+    // everything fits on screen: no slider needed
+    $(".reelnav").hidden = max <= 4;
+    const w = Math.max(12, (reelrow.clientWidth / reelrow.scrollWidth) * 100);
+    // clamp so the thumb sits flush at both ends even with sub-pixel scroll positions
+    const pos = max > 0 ? Math.min(1, Math.max(0, reelrow.scrollLeft / max)) : 0;
+    const p = pos < 0.01 ? 0 : pos > 0.99 ? 1 : pos;
+    thumb.style.width = `${w}%`;
+    thumb.style.left = `${p * (100 - w)}%`;
+    prev.disabled = p === 0;
+    next.disabled = p === 1;
   };
   const step = () => Math.max(250, reelrow.clientWidth * 0.8);
   prev.addEventListener("click", () => reelrow.scrollBy({ left: -step(), behavior: reduceMotion ? "auto" : "smooth" }));
