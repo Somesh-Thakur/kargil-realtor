@@ -40,9 +40,13 @@ python -m http.server 8090 --directory website
 ```
 then open http://localhost:8090
 
-## Put it online (free)
+## Online (GitHub Pages, free)
 
-Recommended: **Netlify** (free plan). Sign up, choose "Add new site → Deploy manually", and drag the whole `website` folder onto the page. You get a link like `kargilrealtor.netlify.app`. To update, drag the folder again.
-Optional: buy a domain (e.g. `kargilrealtor.in`) and connect it in Netlify → Domain settings. Then add the link to the Google Business Profile, Instagram bio and YouTube channel.
+Live at **https://somesh-thakur.github.io/kargil-realtor/** (repo `Somesh-Thakur/kargil-realtor`).
+To publish changes: `git add -A`, `git commit -m "..."`, `git push` from this folder; the site updates about a minute later.
 
-Other free hosts that work the same way: Cloudflare Pages, GitHub Pages.
+### Custom domain (when the owner decides)
+1. Buy the domain (e.g. `kargilrealtor.in`) from any registrar.
+2. At the registrar, add DNS records: four `A` records for `@` → 185.199.108.153, 185.199.109.153, 185.199.110.153, 185.199.111.153, and a `CNAME` for `www` → `somesh-thakur.github.io`.
+3. Repo → Settings → Pages → Custom domain → enter the domain → tick "Enforce HTTPS".
+4. Put the new link on the Google Business Profile, Instagram bio and YouTube channel.
