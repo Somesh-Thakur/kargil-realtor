@@ -2,8 +2,10 @@
 // To add one: copy a block, change the values, put its files in assets/listings/<id>/
 // (poster.jpg, optional preview.mp4, optional reel.mp4 + reel.jpg). See README.md.
 //
-// type: "Office" | "Shop" | "Restaurant"   status: "available" | "rented"
+// type: "Office" | "Shop" | "Showroom" | "Restaurant"   status: "available" | "rented" (or "sold")
+// deal: "Rent" (default, also for lease) | "Sale"
 // rent: monthly rent in rupees (used for sorting and the budget filter)
+// For a sale: deal: "Sale", price: 12500000, priceLabel: "₹1.25 Cr" (rent not needed)
 // instagram / youtube (optional): link to that property's post, shown in its details
 window.LISTINGS = [
   {

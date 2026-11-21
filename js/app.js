@@ -6,8 +6,12 @@
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
 
   const inr = (n) => "₹" + Number(n).toLocaleString("en-IN");
-  const rentText = (l) => l.rentLabel || inr(l.rent);
-  const rentUnit = (l) => (l.rentLabel ? "per month" : "per month");
+  const isSale = (l) => l.deal === "Sale";
+  // headline price: sale price, per-sq-ft label, or monthly rent
+  const rentText = (l) => (isSale(l) ? l.priceLabel || inr(l.price) : l.rentLabel || inr(l.rent));
+  const unit = (l) => (isSale(l) ? "sale price" : "per month");
+  const dealWord = (l) => (isSale(l) ? "for sale" : "for rent");
+  const gone = (l) => l.status === "rented" || l.status === "sold";
   const sizeText = (l) => (l.size ? `${l.size.toLocaleString("en-IN")} ${l.sizeKind || "sq ft"}` : "Size on request");
   const asset = (l, f) => `assets/listings/${l.id}/${f}`;
   const isNew = (l) => (Date.now() - new Date(l.posted).getTime()) / 864e5 <= 7;
@@ -16,7 +20,7 @@
   // The enquiry is a normal WhatsApp chat to the business number, pre-typed with the
   // property's name, rent, reference and a link back to it. Nothing passes through this site.
   const listingMsg = (l) =>
-    `Hi Kargil Realtor, I'm interested in this space:\n${l.title}\n${l.location}\nRent: ${rentText(l)}\nRef: ${l.id}\n${listingUrl(l)}\n\nIs it available for a site visit?`;
+    `Hi Kargil Realtor, I'm interested in this space:\n${l.title}\n${l.location}\n${isSale(l) ? "Price" : "Rent"}: ${rentText(l)}\nRef: ${l.id}\n${listingUrl(l)}\n\nIs it available for a site visit?`;
 
   // ---------- business details into the page ----------
   $$("[data-tel]").forEach((a) => (a.href = `tel:+${K.phoneIntl}`));
@@ -61,7 +65,7 @@
     }),
   );
 
-  const available = ALL.filter((l) => l.status !== "rented");
+  const available = ALL.filter((l) => !gone(l));
 
   // ---------- hero rent card ----------
   const card = $("#rentcard");
@@ -76,7 +80,8 @@
       $("#rc-img").alt = l.title;
       $("#rc-what").textContent = `${l.type} in ${l.area}`;
       $("#rc-price").textContent = rentText(l);
-      $("#rc-meta").textContent = l.rentLabel ? l.rentNote : `${sizeText(l)}, per month`;
+      $("#rc-meta").textContent = l.rentLabel ? l.rentNote : `${sizeText(l)}, ${unit(l)}`;
+      $(".rentcard__tab").textContent = isSale(l) ? "For sale" : "For rent";
       $$("button", dots).forEach((d, j) => d.setAttribute("aria-selected", String(j === rcIndex)));
     };
     if (animate && !reduceMotion) {
@@ -113,14 +118,14 @@
 
   const cardHTML = (l) => `
     <li>
-      <article class="card${l.status === "rented" ? " card--rented" : ""}" data-id="${l.id}">
+      <article class="card${gone(l) ? " card--rented" : ""}" data-gone="${l.status === "sold" ? "Sold" : "Rented"}" data-id="${l.id}">
         <div class="card__media" role="button" tabindex="0" aria-label="Open ${l.title}">
           <img src="${asset(l, "poster.webp")}" alt="${l.title}" loading="lazy" width="640" height="800" />
           ${l.preview ? `<video muted playsinline loop preload="none" src="${asset(l, "preview.mp4")}"></video>` : ""}
           <span class="card__type">${l.type}</span>
-          ${isNew(l) && l.status !== "rented" ? `<span class="card__new">New</span>` : ""}
+          ${isNew(l) && !gone(l) ? `<span class="card__new">New</span>` : ""}
           ${l.reel ? `<span class="card__reel"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M8 5v14l11-7z"/></svg>Video tour</span>` : ""}
-          <span class="card__price"><strong>${rentText(l)}</strong><small>${l.rentLabel ? "per month" : "per month"}</small></span>
+          <span class="card__price"><strong>${rentText(l)}</strong><small>${unit(l)}</small></span>
         </div>
         <div class="card__body">
           <h3>${l.title}</h3>
@@ -141,16 +146,26 @@
     const f = new FormData(form);
     const type = f.get("type");
     const area = f.get("area");
+    const deal = f.get("deal");
     const [lo, hi] = f.get("budget") === "all" ? [0, Infinity] : f.get("budget").split("-").map(Number);
-    let list = ALL.filter((l) => (type === "all" || l.type === type) && (area === "all" || l.area === area) && l.rent >= lo && l.rent <= hi);
+    // the monthly budget filter only applies to rentals; sale listings pass when no budget is chosen
+    const inBudget = (l) => (isSale(l) ? f.get("budget") === "all" : l.rent >= lo && l.rent <= hi);
+    let list = ALL.filter(
+      (l) =>
+        (type === "all" || l.type === type) &&
+        (area === "all" || l.area === area) &&
+        (deal === "all" || (l.deal || "Rent") === deal) &&
+        inBudget(l),
+    );
     const sort = f.get("sort");
-    if (sort === "rent-asc") list.sort((a, b) => a.rent - b.rent);
-    if (sort === "rent-desc") list.sort((a, b) => b.rent - a.rent);
+    const amount = (l) => (isSale(l) ? l.price : l.rent);
+    if (sort === "rent-asc") list.sort((a, b) => amount(a) - amount(b));
+    if (sort === "rent-desc") list.sort((a, b) => amount(b) - amount(a));
     if (sort === "size-desc") list.sort((a, b) => (b.size || 0) - (a.size || 0));
-    if (sort === "new") list.sort((a, b) => (a.status === "rented") - (b.status === "rented") || b.posted.localeCompare(a.posted));
+    if (sort === "new") list.sort((a, b) => gone(a) - gone(b) || b.posted.localeCompare(a.posted));
     grid.innerHTML = list.map(cardHTML).join("");
     $("#empty").hidden = list.length > 0;
-    const n = list.filter((l) => l.status !== "rented").length;
+    const n = list.filter((l) => !gone(l)).length;
     $("#count").textContent = `${n} space${n === 1 ? "" : "s"} available`;
     wireCards();
   };
@@ -253,10 +268,10 @@
   const dlg = $("#detail");
   function openDetail(l) {
     if (!l) return;
-    $("#d-type").textContent = `${l.type} for rent${l.status === "rented" ? " (rented)" : ""}`;
+    $("#d-type").textContent = `${l.type} ${dealWord(l)}${gone(l) ? ` (${l.status})` : ""}`;
     $("#d-title").textContent = l.title;
     $("#d-loc").textContent = l.location;
-    $("#d-price").innerHTML = `<strong>${rentText(l)}</strong><span>${l.rentLabel ? l.rentNote : "per month" + (l.rentNote ? ", " + l.rentNote : "")}</span>`;
+    $("#d-price").innerHTML = `<strong>${rentText(l)}</strong><span>${l.rentLabel ? l.rentNote : unit(l) + (l.rentNote ? ", " + l.rentNote : "")}</span>`;
     $("#d-features").innerHTML = [sizeText(l), ...l.features].map((f) => `<li>${f}</li>`).join("");
     $("#d-wa").href = waLink(listingMsg(l));
     $("#d-wa").target = "_blank";
@@ -325,12 +340,48 @@
   const fromHash = ALL.find((l) => `#${l.id}` === location.hash);
   if (fromHash) openDetail(fromHash);
 
+  // ---------- enquiry tabs: looking for space / own a space ----------
+  const tabNeed = $("#tab-need");
+  const tabOwn = $("#tab-own");
+  const showTab = (own) => {
+    tabNeed.setAttribute("aria-selected", String(!own));
+    tabOwn.setAttribute("aria-selected", String(own));
+    $("#needform").hidden = own;
+    $("#ownerform").hidden = !own;
+    $("#copy-need").hidden = own;
+    $("#copy-own").hidden = !own;
+  };
+  tabNeed.addEventListener("click", () => showTab(false));
+  tabOwn.addEventListener("click", () => showTab(true));
+  // old links to #owners still land on the owner form
+  if (location.hash === "#owners") {
+    showTab(true);
+    $("#enquire").scrollIntoView();
+  }
+
+  // ---------- requirement form -> WhatsApp ----------
+  $("#needform").addEventListener("submit", (e) => {
+    e.preventDefault();
+    const f = new FormData(e.target);
+    const msg = [
+      `Hi Kargil Realtor, I want to ${f.get("deal").toLowerCase()} a commercial space.`,
+      `Type: ${f.get("type")}`,
+      `Area: ${f.get("area")}`,
+      f.get("size") && `Size / seats: ${f.get("size")}`,
+      f.get("budget") && `Budget: ${f.get("budget")}`,
+      "Please share options.",
+    ]
+      .filter(Boolean)
+      .join("\n");
+    window.open(waLink(msg), "_blank", "noopener");
+  });
+
   // ---------- owner form -> WhatsApp ----------
   $("#ownerform").addEventListener("submit", (e) => {
     e.preventDefault();
     const f = new FormData(e.target);
     const msg = [
-      "Hi Kargil Realtor, I want to list my property for rent.",
+      `Hi Kargil Realtor, I want to list my property (${f.get("deal").toLowerCase()}).`,
       `Type: ${f.get("type")}`,
       `Location: ${f.get("area")}`,
       f.get("size") && `Size: ${f.get("size")} sq ft`,
