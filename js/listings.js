@@ -7,7 +7,27 @@
 // rent: monthly rent in rupees (used for sorting and the budget filter)
 // For a sale: deal: "Sale", price: 12500000, priceLabel: "₹1.25 Cr" (rent not needed)
 // instagram / youtube (optional): link to that property's post, shown in its details
+// rentLabel (optional): text instead of a rupee amount, e.g. "On request" (set rent high so it sorts last)
+// moreReels (optional): extra reels of the same listing, e.g. ["reel2"] -> reel2.mp4 + reel2.webp
 window.LISTINGS = [
+  {
+    id: "office-1307-1308",
+    title: "10,407 sq ft premium office space, Pune",
+    type: "Office",
+    area: "Pune",
+    location: "Units 1307 + 1308, Pune",
+    size: 10407,
+    sizeKind: "sq ft carpet",
+    rent: 99999999,
+    rentLabel: "On request",
+    rentNote: "15,611 sq ft chargeable · call for rent",
+    features: ["Unit 1307: 3,291 sq ft carpet (4,936 chargeable)", "Unit 1308: 7,117 sq ft carpet (10,675 chargeable)", "Grand entrance lobby with lifts", "Open floor plate, glass windows, city views", "Good for corporate, IT or back office"],
+    posted: "2026-11-23",
+    status: "available",
+    preview: true,
+    reel: true,
+    moreReels: ["reel2"],
+  },
   {
     id: "vn-shop-670",
     title: "Main-road shop with mezzanine, Viman Nagar",

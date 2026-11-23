@@ -9,7 +9,7 @@
   const isSale = (l) => l.deal === "Sale";
   // headline price: sale price, per-sq-ft label, or monthly rent
   const rentText = (l) => (isSale(l) ? l.priceLabel || inr(l.price) : l.rentLabel || inr(l.rent));
-  const unit = (l) => (isSale(l) ? "sale price" : "per month");
+  const unit = (l) => (isSale(l) ? "sale price" : l.rentLabel ? "rent" : "per month");
   const dealWord = (l) => (isSale(l) ? "for sale" : "for rent");
   const gone = (l) => l.status === "rented" || l.status === "sold";
   const sizeText = (l) => (l.size ? `${l.size.toLocaleString("en-IN")} ${l.sizeKind || "sq ft"}` : "Size on request");
@@ -208,12 +208,14 @@
 
   // ---------- reels strip ----------
   const reelrow = $("#reelrow");
+  // one strip item per reel file: reel.mp4, plus any `moreReels` (e.g. ["reel2"]) of the same listing
   reelrow.innerHTML = ALL.filter((l) => l.reel)
+    .flatMap((l) => ["reel", ...(l.moreReels || [])].map((file) => ({ l, file })))
     .map(
-      (l) => `
+      ({ l, file }) => `
       <li class="reel">
-        <button class="reel__phone" type="button" data-id="${l.id}" aria-label="Play the reel for ${l.title}">
-          <img src="${asset(l, "reel.webp")}" alt="" loading="lazy" />
+        <button class="reel__phone" type="button" data-id="${l.id}" data-file="${file}" aria-label="Play the reel for ${l.title}">
+          <img src="${asset(l, file + ".webp")}" alt="" loading="lazy" />
           <span class="reel__play" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
         </button>
         <p class="reel__cap">${l.title}</p>
@@ -230,7 +232,7 @@
       });
       const l = ALL.find((x) => x.id === btn.dataset.id);
       const v = Object.assign(document.createElement("video"), {
-        src: asset(l, "reel.mp4"),
+        src: asset(l, (btn.dataset.file || "reel") + ".mp4"),
         controls: true,
         autoplay: true,
         playsInline: true,
