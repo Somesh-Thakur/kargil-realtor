@@ -9,6 +9,21 @@
 // instagram / youtube (optional): link to that property's post, shown in its details
 window.LISTINGS = [
   {
+    id: "vn-shop-670",
+    title: "Main-road shop with mezzanine, Viman Nagar",
+    type: "Shop",
+    area: "Viman Nagar",
+    location: "Main road, Viman Nagar, Pune",
+    size: 670,
+    sizeKind: "sq ft carpet",
+    rent: 130000,
+    features: ["Main-road facing", "Mezzanine floor", "Wide frontage", "Wash area", "Good for showroom, clinic, café or retail brand"],
+    posted: "2026-11-23",
+    status: "available",
+    preview: true,
+    reel: true,
+  },
+  {
     id: "vn-office-840",
     title: "18-seat office in Viman Nagar",
     type: "Office",
