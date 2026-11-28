@@ -42,6 +42,7 @@ window.LISTINGS = [
     status: "available",
     preview: true,
     reel: true,
+    moreReels: ["reel2"],
   },
   {
     id: "vn-office-840",
