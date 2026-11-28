@@ -11,6 +11,21 @@
 // moreReels (optional): extra reels of the same listing, e.g. ["reel2"] -> reel2.mp4 + reel2.webp
 window.LISTINGS = [
   {
+    id: "vn-shop-570",
+    title: "Ground-floor shop near Symbiosis, Viman Nagar",
+    type: "Shop",
+    area: "Viman Nagar",
+    location: "Near Symbiosis Law School, Viman Nagar, Pune",
+    size: 570,
+    sizeKind: "sq ft carpet",
+    rent: 150000,
+    features: ["Ground floor", "High ceiling", "Attached washroom", "Near Symbiosis Law School", "Good for showroom, café, clinic or office"],
+    posted: "2026-11-28",
+    status: "available",
+    preview: true,
+    reel: true,
+  },
+  {
     id: "office-1307-1308",
     title: "10,407 sq ft premium office space, Pune",
     type: "Office",
